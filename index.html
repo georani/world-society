@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>개념 디딤돌 — 국제 사회</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+    background: #f4f6fb;
+    color: #1f2937;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+  .app { width: 100%; max-width: 720px; }
+  header { text-align: center; margin-bottom: 18px; }
+  header h1 {
+    font-size: 30px; color: #1d4ed8; letter-spacing: -0.5px;
+  }
+  header p { color: #6b7280; margin-top: 6px; font-size: 14px; }
+  .steps { display: flex; gap: 8px; justify-content: center; margin: 18px 0; }
+  .step-tab {
+    padding: 8px 18px; border-radius: 999px; border: 1px solid #c7d2fe;
+    background: #fff; color: #4338ca; font-size: 14px; cursor: pointer; font-weight: 600;
+  }
+  .step-tab.active { background: #4338ca; color: #fff; border-color: #4338ca; }
+  .panel {
+    background: #fff; border-radius: 18px; padding: 22px;
+    box-shadow: 0 8px 28px rgba(31,41,55,0.08);
+  }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 18px; }
+  button.ctrl {
+    border: 1px solid #d1d5db; background: #fff; color: #374151;
+    padding: 8px 14px; border-radius: 10px; font-size: 13px; cursor: pointer;
+  }
+  button.ctrl:hover { background: #f3f4f6; }
+  button.ctrl.on { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+  .card-wrap { perspective: 1200px; margin: 6px auto 18px; }
+  .card {
+    position: relative; width: 100%; height: 280px; cursor: pointer;
+    transform-style: preserve-3d; transition: transform 0.5s;
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0; backface-visibility: hidden;
+    border-radius: 18px; display: flex; align-items: center; justify-content: center;
+    padding: 28px; text-align: center; line-height: 1.5;
+  }
+  .face.front { background: #eef2ff; border: 2px solid #c7d2fe; color: #312e81; }
+  .face.back { background: #1d4ed8; color: #fff; transform: rotateY(180deg); }
+  .face .label { position: absolute; top: 14px; left: 18px; font-size: 12px; opacity: 0.7; }
+  .progress { text-align: center; color: #6b7280; font-size: 13px; margin-bottom: 10px; }
+  .nav { display: flex; gap: 8px; justify-content: center; }
+  .nav button {
+    border: none; background: #4338ca; color: #fff; padding: 10px 18px;
+    border-radius: 10px; font-size: 14px; cursor: pointer;
+  }
+  .nav button.ghost { background: #e5e7eb; color: #374151; }
+  .nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+  /* Quiz */
+  .quiz-meaning {
+    background: #eef2ff; border-radius: 14px; padding: 22px; text-align: center;
+    font-size: 19px; color: #312e81; line-height: 1.6; margin-bottom: 18px;
+  }
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .option {
+    border: 2px solid #d1d5db; background: #fff; border-radius: 12px;
+    padding: 18px 12px; font-size: 17px; cursor: pointer; text-align: center; color: #1f2937;
+  }
+  .option:hover { border-color: #93c5fd; }
+  .option.correct { background: #dcfce7; border-color: #22c55e; color: #15803d; }
+  .option.wrong { background: #fee2e2; border-color: #ef4444; color: #b91c1c; }
+  .option:disabled { cursor: default; }
+  .feedback { text-align: center; margin: 16px 0; font-size: 16px; font-weight: 600; min-height: 24px; }
+  .score { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 10px; }
+  .result { text-align: center; padding: 20px; }
+  .result h2 { color: #1d4ed8; font-size: 26px; margin-bottom: 10px; }
+  .result p { color: #4b5563; margin-bottom: 18px; }
+  .hidden { display: none; }
+  select { padding: 7px 10px; border-radius: 8px; border: 1px solid #d1d5db; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>개념 디딤돌</h1>
+    <p>국제 사회 — 핵심 용어 익히기</p>
+  </header>
+
+  <div class="steps">
+    <button class="step-tab active" id="tab1" onclick="goStep(1)">1단계 · 디딤돌</button>
+    <button class="step-tab" id="tab2" onclick="goStep(2)">2단계 · 정답 찾기</button>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="panel" id="step1">
+    <div class="toolbar">
+      <button class="ctrl on" id="orderBtn" onclick="toggleOrder()">의미 먼저</button>
+      <button class="ctrl" id="autoBtn" onclick="toggleAuto()">▶ 자동 넘김</button>
+      <select id="speedSel" onchange="updateSpeed()">
+        <option value="3500">느리게</option>
+        <option value="2300" selected>보통</option>
+        <option value="1400">빠르게</option>
+      </select>
+      <button class="ctrl" id="musicBtn" onclick="toggleMusic()">♪ 음악 켜기</button>
+    </div>
+
+    <div class="progress" id="progress"></div>
+    <div class="card-wrap">
+      <div class="card" id="card" onclick="flipCard()">
+        <div class="face front"><span class="label" id="frontLabel"></span><div id="frontText"></div></div>
+        <div class="face back"><span class="label" id="backLabel"></span><div id="backText"></div></div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="ghost" id="prevBtn" onclick="prevCard()">← 이전 단어</button>
+      <button id="nextBtn" onclick="nextCard()">다음 단어 →</button>
+      <button id="toQuizBtn" onclick="goStep(2)">정답 찾기로 →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="panel hidden" id="step2">
+    <div id="quizArea">
+      <div class="score" id="quizScore"></div>
+      <div class="quiz-meaning" id="quizMeaning"></div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="nav"><button id="quizNext" class="hidden" onclick="nextQuiz()">다음 문제 →</button></div>
+    </div>
+    <div class="result hidden" id="resultArea">
+      <h2 id="resultTitle"></h2>
+      <p id="resultDesc"></p>
+      <div class="nav"><button onclick="startQuiz()">다시 풀기</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 단어 데이터: 이 부분만 바꾸면 다른 단원 카드가 됩니다 ===== */
+var DATA = [
+  { word: "국제 사회", meaning: "여러 나라가 교류하고 의존하면서 함께 살아가는 사회" },
+  { word: "난민", meaning: "전쟁이나 재난 따위를 당하여 곤경에 빠진 국민" },
+  { word: "기아", meaning: "먹을 것이 없어 배를 곯는 것" },
+  { word: "빈곤", meaning: "가난하여 살기가 어려움" },
+  { word: "주권", meaning: "국가의 의사를 최종적으로 결정할 수 있는 권력으로, 국가 안에서는 최고의 힘을 가지고 국가 밖에서는 독립성을 지님" },
+  { word: "이해관계", meaning: "서로의 이익이나 손해에 영향을 미치는 관계" },
+  { word: "무정부", meaning: "정부가 존재하지 않음" },
+  { word: "국제법", meaning: "국가 간 협의에 따라 국가 간의 권리와 의무를 규정한 국제 사회의 법" },
+  { word: "국제 여론", meaning: "국제 사회에서 영향력이 있는 의견" },
+  { word: "조약", meaning: "국가 간에 맺은 법적 구속력을 가지는 약속" },
+  { word: "세계 무역 기구", meaning: "자유 무역을 확대하고 국가 간 무역 분쟁을 조정하기 위한 목적으로 설립된 국제 기구" },
+  { word: "국제 사면 위원회", meaning: "인권 보호와 양심수의 사면을 위하여 활동하는 국제기구" },
+  { word: "양심수", meaning: "사상이나 신념을 내세워 행동한 이유로 투옥되거나 구금되어 있는 사람" }
+];
+/* ============================================================ */
+
+var idx = 0, meaningFirst = true, flipped = false;
+var autoOn = false, autoTimer = null, speed = 2300;
+
+function fontSize(t){ var n=t.length; if(n<=4) return 44; if(n<=8) return 34; if(n<=16) return 26; if(n<=30) return 21; return 18; }
+
+function renderCard(){
+  flipped = false;
+  document.getElementById('card').classList.remove('flipped');
+  var d = DATA[idx];
+  var fT=document.getElementById('frontText'), bT=document.getElementById('backText');
+  var fL=document.getElementById('frontLabel'), bL=document.getElementById('backLabel');
+  if(meaningFirst){
+    fT.textContent=d.meaning; fT.style.fontSize=fontSize(d.meaning)+'px'; fL.textContent='의미';
+    bT.textContent=d.word; bT.style.fontSize=fontSize(d.word)+'px'; bL.textContent='단어';
+  } else {
+    fT.textContent=d.word; fT.style.fontSize=fontSize(d.word)+'px'; fL.textContent='단어';
+    bT.textContent=d.meaning; bT.style.fontSize=fontSize(d.meaning)+'px'; bL.textContent='의미';
+  }
+  document.getElementById('progress').textContent=(idx+1)+' / '+DATA.length;
+  document.getElementById('prevBtn').disabled = idx===0;
+  document.getElementById('nextBtn').disabled = idx===DATA.length-1;
+}
+function flipCard(){ flipped=!flipped; document.getElementById('card').classList.toggle('flipped',flipped); }
+function nextCard(){ if(idx<DATA.length-1){ idx++; renderCard(); } }
+function prevCard(){ if(idx>0){ idx--; renderCard(); } }
+function toggleOrder(){
+  meaningFirst=!meaningFirst;
+  document.getElementById('orderBtn').textContent = meaningFirst?'의미 먼저':'단어 먼저';
+  renderCard();
+}
+function updateSpeed(){ speed=parseInt(document.getElementById('speedSel').value,10); if(autoOn){ stopAuto(); startAuto(); } }
+function startAuto(){
+  autoOn=true; document.getElementById('autoBtn').textContent='❚❚ 일시정지';
+  document.getElementById('autoBtn').classList.add('on');
+  function tick(){
+    if(!autoOn) return;
+    if(!flipped){ flipCard(); autoTimer=setTimeout(tick, speed); }
+    else { if(idx<DATA.length-1){ nextCard(); autoTimer=setTimeout(tick, speed); } else { stopAuto(); } }
+  }
+  autoTimer=setTimeout(tick, speed);
+}
+function stopAuto(){
+  autoOn=false; if(autoTimer) clearTimeout(autoTimer);
+  document.getElementById('autoBtn').textContent='▶ 자동 넘김';
+  document.getElementById('autoBtn').classList.remove('on');
+}
+function toggleAuto(){ if(autoOn) stopAuto(); else startAuto(); }
+
+/* ===== 배경음악 (Web Audio 실시간 합성) ===== */
+var audioCtx=null, musicOn=false, musicTimer=null, masterGain=null;
+var melody=[523.25,659.25,783.99,659.25,587.33,698.46,587.33,523.25,659.25,783.99,1046.5,783.99];
+var mi=0;
+function noteOn(freq,dur){
+  var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type='triangle'; o.frequency.value=freq;
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime+0.03);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+  o.connect(g); g.connect(masterGain); o.start(); o.stop(audioCtx.currentTime+dur);
+}
+function bassOn(freq,dur){
+  var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type='sine'; o.frequency.value=freq;
+  g.gain.setValueAtTime(0.18, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+  o.connect(g); g.connect(masterGain); o.start(); o.stop(audioCtx.currentTime+dur);
+}
+function step(){
+  if(!musicOn) return;
+  var f=melody[mi%melody.length];
+  noteOn(f,0.35);
+  if(mi%2===0) bassOn(f/2,0.4);
+  mi++;
+  musicTimer=setTimeout(step, 300);
+}
+function toggleMusic(){
+  if(!audioCtx){ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); masterGain=audioCtx.createGain(); masterGain.gain.value=0.5; masterGain.connect(audioCtx.destination); }
+  if(musicOn){
+    musicOn=false; if(musicTimer) clearTimeout(musicTimer);
+    document.getElementById('musicBtn').textContent='♪ 음악 켜기';
+    document.getElementById('musicBtn').classList.remove('on');
+  } else {
+    if(audioCtx.state==='suspended') audioCtx.resume();
+    musicOn=true; mi=0; step();
+    document.getElementById('musicBtn').textContent='♪ 음악 끄기';
+    document.getElementById('musicBtn').classList.add('on');
+  }
+}
+
+/* ===== 단계 전환 ===== */
+function goStep(n){
+  document.getElementById('tab1').classList.toggle('active', n===1);
+  document.getElementById('tab2').classList.toggle('active', n===2);
+  document.getElementById('step1').classList.toggle('hidden', n!==1);
+  document.getElementById('step2').classList.toggle('hidden', n!==2);
+  if(n===2){ stopAuto(); if(musicOn) toggleMusic(); startQuiz(); }
+}
+
+/* ===== 2단계 퀴즈 ===== */
+var quizOrder=[], qPos=0, score=0;
+function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+function startQuiz(){
+  quizOrder=shuffle(DATA.map(function(_,i){return i;}));
+  qPos=0; score=0;
+  document.getElementById('resultArea').classList.add('hidden');
+  document.getElementById('quizArea').classList.remove('hidden');
+  renderQuiz();
+}
+function renderQuiz(){
+  document.getElementById('feedback').textContent='';
+  document.getElementById('quizNext').classList.add('hidden');
+  var ci=quizOrder[qPos], correct=DATA[ci];
+  document.getElementById('quizScore').textContent='문제 '+(qPos+1)+' / '+DATA.length+'   ·   점수 '+score;
+  document.getElementById('quizMeaning').textContent=correct.meaning;
+  var pool=DATA.map(function(_,i){return i;}).filter(function(i){return i!==ci;});
+  var wrong=shuffle(pool).slice(0,3);
+  var opts=shuffle([ci].concat(wrong));
+  var box=document.getElementById('options'); box.innerHTML='';
+  opts.forEach(function(oi){
+    var b=document.createElement('button'); b.className='option'; b.textContent=DATA[oi].word;
+    b.onclick=function(){ choose(b, oi===ci, correct.word); };
+    box.appendChild(b);
+  });
+}
+function choose(btn, isCorrect, answer){
+  var btns=document.querySelectorAll('#options .option');
+  btns.forEach(function(b){ b.disabled=true; if(b.textContent===answer) b.classList.add('correct'); });
+  if(isCorrect){ score++; document.getElementById('feedback').textContent='정답입니다! 🎉'; document.getElementById('feedback').style.color='#15803d'; }
+  else { btn.classList.add('wrong'); document.getElementById('feedback').textContent='아쉬워요. 정답: '+answer; document.getElementById('feedback').style.color='#b91c1c'; }
+  document.getElementById('quizScore').textContent='문제 '+(qPos+1)+' / '+DATA.length+'   ·   점수 '+score;
+  document.getElementById('quizNext').classList.remove('hidden');
+  document.getElementById('quizNext').textContent = (qPos<DATA.length-1)?'다음 문제 →':'결과 보기 →';
+}
+function nextQuiz(){
+  if(qPos<DATA.length-1){ qPos++; renderQuiz(); }
+  else { showResult(); }
+}
+function showResult(){
+  document.getElementById('quizArea').classList.add('hidden');
+  document.getElementById('resultArea').classList.remove('hidden');
+  var pct=Math.round(score/DATA.length*100);
+  document.getElementById('resultTitle').textContent=DATA.length+'문제 중 '+score+'문제 정답!';
+  document.getElementById('resultDesc').textContent='정답률 '+pct+'%';
+}
+
+renderCard();
+</script>
+</body>
+</html>
